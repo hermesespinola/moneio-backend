@@ -1,0 +1,11 @@
+# Refer to https://github.com/golang/dep/blob/master/docs/Gopkg.toml.md for detailed Gopkg.toml documentation.
+
+required = ["github.com/joho/godotenv/autoload", "github.com/lib/pq"]
+
+[[constraint]]
+  name = "github.com/joho/godotenv"
+  version = "1.3.x"
+
+[[constraint]]
+  name = "github.com/lib/pq"
+  version = "1.x.x"
