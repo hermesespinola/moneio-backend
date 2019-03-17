@@ -20,14 +20,26 @@ func billHandler(w http.ResponseWriter, r *http.Request) {
 
 	serialCode := r.FormValue("serialCode")
 	denomination, err := strconv.Atoi(r.FormValue("denomination"))
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
 	notes := r.FormValue("notes")
-	latitude, err1 := strconv.ParseFloat(r.FormValue("latitude"), 64)
-	longitude, err2 := strconv.ParseFloat(r.FormValue("longitude"), 64)
+	latitude, err := strconv.ParseFloat(r.FormValue("latitude"), 64)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+	longitude, err := strconv.ParseFloat(r.FormValue("longitude"), 64)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
 	imArray := r.MultipartForm.File["image"]
 	var imFileHeader *multipart.FileHeader
 	if len(imArray) > 0 {
 		imFileHeader = r.MultipartForm.File["image"][0]
-		if err != nil || err1 != nil || err2 != nil {
+		if err != nil {
 			http.Error(w, err.Error(), 500)
 			return
 		}
@@ -35,8 +47,7 @@ func billHandler(w http.ResponseWriter, r *http.Request) {
 
 	err = uploadBill(serialCode, latitude, longitude, denomination, notes, imFileHeader)
 	if err != nil {
-		w.WriteHeader(500)
-		fmt.Fprintf(w, "Error")
+		http.Error(w, err.Error(), 500)
 	}
 	fmt.Fprintf(w, "Ok")
 }
