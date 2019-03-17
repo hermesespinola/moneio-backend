@@ -1,4 +1,7 @@
-.PHONY: build clean deploy
+.PHONY: run build clean
+
+run:
+	go run *.go
 
 build:
 	dep ensure -v

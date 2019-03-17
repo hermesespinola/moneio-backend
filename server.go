@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"mime/multipart"
 	"net/http"
 	"strconv"
 )
@@ -20,21 +21,24 @@ func billHandler(w http.ResponseWriter, r *http.Request) {
 	serialCode := r.FormValue("serialCode")
 	denomination, err := strconv.Atoi(r.FormValue("denomination"))
 	notes := r.FormValue("notes")
-	coords := r.FormValue("coords")
-	imFileHeader := r.MultipartForm.File["image"][0]
+	latitude, err1 := strconv.ParseFloat(r.FormValue("latitude"), 64)
+	longitude, err2 := strconv.ParseFloat(r.FormValue("longitude"), 64)
+	imArray := r.MultipartForm.File["image"]
+	var imFileHeader *multipart.FileHeader
+	if len(imArray) > 0 {
+		imFileHeader = r.MultipartForm.File["image"][0]
+		if err != nil || err1 != nil || err2 != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+	}
 
-	if err != nil {
-		http.Error(w, err.Error(), 500)
-		return
-	}
-	uploadBill(serialCode, denomination, coords, notes, imFileHeader)
-	if err != nil {
-		http.Error(w, err.Error(), 500)
-		return
-	}
+	uploadBill(serialCode, latitude, longitude, denomination, notes, imFileHeader)
+	fmt.Fprintf(w, "Ok")
 }
 
 func main() {
 	http.HandleFunc("/upload-bill", billHandler)
+	println("Listening on port 8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }

@@ -1,9 +1,9 @@
-CREATE TABLE bills(
+CREATE TABLE IF NOT EXISTS bills(
     serialCode CHAR(8) PRIMARY KEY NOT NULL
 );
 
-CREATE TABLE billEntry(
-    id INT PRIMARY KEY NOT NULL,
+CREATE TABLE IF NOT EXISTS billEntry(
+    id SERIAL UNIQUE,
     serialCode CHAR(8) NOT NULL
         REFERENCES bills(serialCode),
     denomination INT NOT NULL

@@ -11,75 +11,92 @@ import (
 	_ "github.com/lib/pq"
 )
 
+// Bill contains the serialCode
+type Bill struct {
+	serialCode string
+}
+
 func connect() (*sql.DB, error) {
+	fmtStr := "host=%s port=%s user=%s " +
+		"password=%s dbname=%s sslmode=disable"
 	psqlInfo := fmt.Sprintf(
-		"host=%s port=%s user=%s "+
-			"password=%s dbname=%s sslmode=disable",
-		os.Getenv("HOST"),
-		os.Getenv("PORT"),
-		os.Getenv("USER"),
-		os.Getenv("PASSWORD"),
-		os.Getenv("DBNAME"),
+		fmtStr,
+		os.Getenv("PG_HOST"),
+		os.Getenv("PG_PORT"),
+		os.Getenv("PG_USER"),
+		os.Getenv("PG_PASSWORD"),
+		os.Getenv("PG_DBNAME"),
 	)
 	db, err := sql.Open("postgres", psqlInfo)
 	return db, err
 }
 
-func saveBillImage(imFileHeader *multipart.FileHeader, id int) (err error) {
-	// ensure dir exists and create final file
-	os.MkdirAll("./packs", os.ModePerm)
-	file, err := os.Create("./packs/" + imFileHeader.Filename)
-	defer file.Close()
-	if err != nil {
-		println(err.Error())
-		return err
-	}
-
+func saveBillImage(imFileHeader *multipart.FileHeader, serialCode string) (err error) {
 	// Read image
 	im, err := imFileHeader.Open()
 	defer im.Close()
 	if err != nil {
-		println(err.Error())
-		return err
+		panic(err)
 	}
 
 	// Ensure dir exists and create final file
-	os.MkdirAll("./bills", os.ModePerm)
-	file, err = os.Create("./images/" + (string)(id) + "/" + imFileHeader.Filename)
+	os.MkdirAll("./images/bills/"+serialCode, os.ModePerm)
+	file, err := os.Create("./images/bills/" + serialCode + "/" + imFileHeader.Filename)
 	defer file.Close()
 	if err != nil {
-		println(err.Error())
-		return err
+		panic(err)
 	}
 
 	// write image file to dir
 	_, err = io.Copy(file, im)
 	if err != nil {
-		println(err.Error())
-		return err
+		panic(err)
 	}
 
 	return nil
 }
 
-func uploadBill(serialCode string, denomination int, coords string, notes string, imFileHeader *multipart.FileHeader) {
+func uploadBill(serialCode string, latitude, longitude float64, denomination int, notes string, imFileHeader *multipart.FileHeader) {
 	db, err := connect()
 	if err != nil {
 		panic(err)
 	}
 	defer db.Close()
 
+	// Check for bill
 	sqlStatement := `
-		INSERT INTO bills (serialCode, denomination, latitude, longitude, notes)
-    	VALUES ($1, $2, $3, $4)
-		RETURNING serialCode
+		SELECT COUNT(serialCode) FROM bills
+		WHERE serialCode=$1;
 	`
-	id := 0
-	err = db.QueryRow(sqlStatement, serialCode, denomination, coords, notes).Scan(&id)
+	row := db.QueryRow(sqlStatement, serialCode)
+	billExists := 0
+	err = row.Scan(&billExists)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("New record ID is:", id)
 
-	saveBillImage(imFileHeader, id)
+	// Insert the new bill
+	if billExists == 0 {
+		sqlStatement = `
+			INSERT INTO bills (serialCode) VALUES ($1)
+		`
+		_, err = db.Query(sqlStatement, serialCode)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	sqlStatement = `
+		INSERT INTO billEntry (serialCode, latitude, longitude, denomination, notes)
+    	VALUES ($1, $2, $3, $4, $5)
+		RETURNING serialCode
+	`
+	_, err = db.Query(sqlStatement, serialCode, latitude, longitude, denomination, notes)
+	if err != nil {
+		panic(err)
+	}
+
+	if imFileHeader != nil {
+		saveBillImage(imFileHeader, serialCode)
+	}
 }
