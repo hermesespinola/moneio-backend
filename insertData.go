@@ -31,12 +31,13 @@ func connect() (*sql.DB, error) {
 	return db, err
 }
 
-func saveBillImage(imFileHeader *multipart.FileHeader, serialCode string) (err error) {
+func saveBillImage(imFileHeader *multipart.FileHeader, serialCode string) error {
 	// Read image
 	im, err := imFileHeader.Open()
 	defer im.Close()
 	if err != nil {
-		panic(err)
+		println(err.Error())
+		return err
 	}
 
 	// Ensure dir exists and create final file
@@ -44,22 +45,25 @@ func saveBillImage(imFileHeader *multipart.FileHeader, serialCode string) (err e
 	file, err := os.Create("./images/bills/" + serialCode + "/" + imFileHeader.Filename)
 	defer file.Close()
 	if err != nil {
-		panic(err)
+		println(err.Error())
+		return err
 	}
 
 	// write image file to dir
 	_, err = io.Copy(file, im)
 	if err != nil {
-		panic(err)
+		println(err.Error())
+		return err
 	}
 
 	return nil
 }
 
-func uploadBill(serialCode string, latitude, longitude float64, denomination int, notes string, imFileHeader *multipart.FileHeader) {
+func uploadBill(serialCode string, latitude, longitude float64, denomination int, notes string, imFileHeader *multipart.FileHeader) error {
 	db, err := connect()
 	if err != nil {
-		panic(err)
+		println(err)
+		return err
 	}
 	defer db.Close()
 
@@ -72,7 +76,8 @@ func uploadBill(serialCode string, latitude, longitude float64, denomination int
 	billExists := 0
 	err = row.Scan(&billExists)
 	if err != nil {
-		panic(err)
+		println(err.Error())
+		return err
 	}
 
 	// Insert the new bill
@@ -82,7 +87,8 @@ func uploadBill(serialCode string, latitude, longitude float64, denomination int
 		`
 		_, err = db.Query(sqlStatement, serialCode)
 		if err != nil {
-			panic(err)
+			println(err.Error())
+			return err
 		}
 	}
 
@@ -93,10 +99,12 @@ func uploadBill(serialCode string, latitude, longitude float64, denomination int
 	`
 	_, err = db.Query(sqlStatement, serialCode, latitude, longitude, denomination, notes)
 	if err != nil {
-		panic(err)
+		println(err.Error())
+		return err
 	}
 
 	if imFileHeader != nil {
-		saveBillImage(imFileHeader, serialCode)
+		return saveBillImage(imFileHeader, serialCode)
 	}
+	return nil
 }

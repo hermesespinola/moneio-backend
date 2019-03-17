@@ -33,7 +33,11 @@ func billHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	uploadBill(serialCode, latitude, longitude, denomination, notes, imFileHeader)
+	err = uploadBill(serialCode, latitude, longitude, denomination, notes, imFileHeader)
+	if err != nil {
+		w.WriteHeader(500)
+		fmt.Fprintf(w, "Error")
+	}
 	fmt.Fprintf(w, "Ok")
 }
 
