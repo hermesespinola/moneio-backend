@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"io"
+	"log"
 	"mime/multipart"
 	"os"
 
@@ -36,7 +37,7 @@ func saveBillImage(imFileHeader *multipart.FileHeader, serialCode string) error 
 	im, err := imFileHeader.Open()
 	defer im.Close()
 	if err != nil {
-		println(err.Error())
+		log.Println(err.Error())
 		return err
 	}
 
@@ -45,14 +46,14 @@ func saveBillImage(imFileHeader *multipart.FileHeader, serialCode string) error 
 	file, err := os.Create("./images/bills/" + serialCode + "/" + imFileHeader.Filename)
 	defer file.Close()
 	if err != nil {
-		println(err.Error())
+		log.Println(err.Error())
 		return err
 	}
 
 	// write image file to dir
 	_, err = io.Copy(file, im)
 	if err != nil {
-		println(err.Error())
+		log.Println(err.Error())
 		return err
 	}
 
@@ -62,44 +63,44 @@ func saveBillImage(imFileHeader *multipart.FileHeader, serialCode string) error 
 func uploadBill(serialCode string, latitude, longitude float64, denomination int, notes string, imFileHeader *multipart.FileHeader) error {
 	db, err := connect()
 	if err != nil {
-		println(err)
+		log.Println(err)
 		return err
 	}
 	defer db.Close()
 
 	// Check for bill
 	sqlStatement := `
-		SELECT COUNT(serialCode) FROM bills
-		WHERE serialCode=$1;
+		SELECT COUNT(serialCode)
+		FROM bills
+		WHERE serialCode = $1;
 	`
 	row := db.QueryRow(sqlStatement, serialCode)
 	billExists := 0
 	err = row.Scan(&billExists)
 	if err != nil {
-		println(err.Error())
+		log.Println(err.Error())
 		return err
 	}
 
 	// Insert the new bill
 	if billExists == 0 {
 		sqlStatement = `
-			INSERT INTO bills (serialCode) VALUES ($1)
+			INSERT INTO bills (serialCode) VALUES ($1);
 		`
 		_, err = db.Query(sqlStatement, serialCode)
 		if err != nil {
-			println(err.Error())
+			log.Println(err.Error())
 			return err
 		}
 	}
 
 	sqlStatement = `
 		INSERT INTO billEntry (serialCode, latitude, longitude, denomination, notes)
-    	VALUES ($1, $2, $3, $4, $5)
-		RETURNING serialCode
+    	VALUES ($1, $2, $3, $4, $5);
 	`
 	_, err = db.Query(sqlStatement, serialCode, latitude, longitude, denomination, notes)
 	if err != nil {
-		println(err.Error())
+		log.Println(err.Error())
 		return err
 	}
 

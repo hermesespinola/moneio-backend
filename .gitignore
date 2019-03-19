@@ -1,4 +1,6 @@
 .env
+# PowerShell env files
+*.ps1
 
 # golang output binary directory
 bin
