@@ -5,7 +5,6 @@ import (
 	"log"
 	"mime/multipart"
 	"net/http"
-	"os"
 	"strconv"
 )
 

@@ -2,11 +2,13 @@ package main
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"io"
 	"log"
 	"mime/multipart"
 	"os"
+	"strconv"
 
 	_ "github.com/joho/godotenv/autoload"
 	_ "github.com/lib/pq"
@@ -70,14 +72,20 @@ func uploadBill(serialCode string, latitude, longitude float64, denomination int
 
 	// Check for bill
 	sqlStatement := `
-		SELECT COUNT(serialCode)
+		SELECT COUNT(serialCode), denomination
 		FROM bills
-		WHERE serialCode = $1;
+		WHERE serialCode = $1
+		GROUP BY denomination;
 	`
 	row := db.QueryRow(sqlStatement, serialCode)
 	billExists := 0
-	err = row.Scan(&billExists)
-	if err != nil {
+	billDenomination := 0
+	err = row.Scan(&billExists, &billDenomination)
+	switch err {
+	case nil:
+	case sql.ErrNoRows:
+		break
+	default:
 		log.Println(err.Error())
 		return err
 	}
@@ -85,20 +93,22 @@ func uploadBill(serialCode string, latitude, longitude float64, denomination int
 	// Insert the new bill
 	if billExists == 0 {
 		sqlStatement = `
-			INSERT INTO bills (serialCode) VALUES ($1);
+			INSERT INTO bills (serialCode, denomination) VALUES ($1, $2);
 		`
-		_, err = db.Query(sqlStatement, serialCode)
+		_, err = db.Query(sqlStatement, serialCode, denomination)
 		if err != nil {
 			log.Println(err.Error())
 			return err
 		}
+	} else if billDenomination != denomination {
+		return errors.New("This bill should be $" + strconv.FormatInt(int64(billDenomination), 10))
 	}
 
 	sqlStatement = `
-		INSERT INTO billEntry (serialCode, latitude, longitude, denomination, notes)
-    	VALUES ($1, $2, $3, $4, $5);
+		INSERT INTO billEntry (serialCode, latitude, longitude, notes)
+    	VALUES ($1, $2, $3, $4);
 	`
-	_, err = db.Query(sqlStatement, serialCode, latitude, longitude, denomination, notes)
+	_, err = db.Query(sqlStatement, serialCode, latitude, longitude, notes)
 	if err != nil {
 		log.Println(err.Error())
 		return err
