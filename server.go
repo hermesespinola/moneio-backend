@@ -70,13 +70,6 @@ func cors(h http.Handler) http.Handler {
 }
 
 func main() {
-	// Set custom env variable
-	os.Setenv("PG_HOST", "127.0.0.1")
-	os.Setenv("PG_PORT", "5432")
-	os.Setenv("PG_USER", "postgres")
-	os.Setenv("PG_PASSWORD", "postgres")
-	os.Setenv("PG_DBNAME", "moneio")
-
 	mux := http.NewServeMux()
 	mux.HandleFunc("/upload-bill", billHandler)
 	server := cors(mux)
