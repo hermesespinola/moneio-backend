@@ -1,4 +1,6 @@
 .env
+images/
+
 # PowerShell env files
 *.ps1
 
