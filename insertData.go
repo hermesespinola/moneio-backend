@@ -14,12 +14,8 @@ import (
 	_ "github.com/lib/pq"
 )
 
-// Bill contains the serialCode
-type Bill struct {
-	serialCode string
-}
-
-func connect() (*sql.DB, error) {
+// Connect creates a connection to the postgres database
+func Connect() (*sql.DB, error) {
 	fmtStr := "host=%s port=%s user=%s " +
 		"password=%s dbname=%s sslmode=disable"
 	psqlInfo := fmt.Sprintf(
@@ -34,7 +30,7 @@ func connect() (*sql.DB, error) {
 	return db, err
 }
 
-func saveBillImage(imFileHeader *multipart.FileHeader, serialCode string) error {
+func saveBillImage(imFileHeader *multipart.FileHeader, serialCode, id string) error {
 	// Read image
 	im, err := imFileHeader.Open()
 	defer im.Close()
@@ -45,7 +41,7 @@ func saveBillImage(imFileHeader *multipart.FileHeader, serialCode string) error 
 
 	// Ensure dir exists and create final file
 	os.MkdirAll("./images/bills/"+serialCode, os.ModePerm)
-	file, err := os.Create("./images/bills/" + serialCode + "/" + imFileHeader.Filename)
+	file, err := os.Create("./images/bills/" + serialCode + "/" + id)
 	defer file.Close()
 	if err != nil {
 		log.Println(err.Error())
@@ -63,7 +59,7 @@ func saveBillImage(imFileHeader *multipart.FileHeader, serialCode string) error 
 }
 
 func uploadBill(serialCode string, latitude, longitude float64, denomination int, notes string, imFileHeader *multipart.FileHeader) error {
-	db, err := connect()
+	db, err := Connect()
 	if err != nil {
 		log.Println(err)
 		return err
@@ -105,7 +101,7 @@ func uploadBill(serialCode string, latitude, longitude float64, denomination int
 	}
 
 	sqlStatement = `
-		INSERT INTO billEntry (serialCode, latitude, longitude, notes)
+		INSERT INTO billEntries (serialCode, latitude, longitude, notes)
     	VALUES ($1, $2, $3, $4);
 	`
 	_, err = db.Query(sqlStatement, serialCode, latitude, longitude, notes)
@@ -113,9 +109,23 @@ func uploadBill(serialCode string, latitude, longitude float64, denomination int
 		log.Println(err.Error())
 		return err
 	}
+	sqlStatement = `
+		SELECT id
+		FROM billEntries
+		WHERE serialCode = $1
+		ORDER BY creationDate ASC
+		LIMIT 1;
+	`
+	row = db.QueryRow(sqlStatement, serialCode)
+	var id string
+	err = row.Scan(&id)
+	if err != nil {
+		log.Println(err.Error())
+		return err
+	}
 
 	if imFileHeader != nil {
-		return saveBillImage(imFileHeader, serialCode)
+		return saveBillImage(imFileHeader, serialCode, id)
 	}
 	return nil
 }
