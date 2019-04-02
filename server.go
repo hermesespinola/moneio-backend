@@ -76,7 +76,7 @@ func getBillEntries(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	serialCode := vars["serialCode"]
 	pageSizeArr := queryValues["pageSize"]
-	pageSize := 10 // Default page size
+	pageSize := 100 // Default page size
 	var err error
 	if len(pageSizeArr) > 0 {
 		pageSize, err = strconv.Atoi(pageSizeArr[0])
