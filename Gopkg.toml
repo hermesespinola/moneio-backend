@@ -1,6 +1,6 @@
 # Refer to https://github.com/golang/dep/blob/master/docs/Gopkg.toml.md for detailed Gopkg.toml documentation.
 
-required = ["github.com/joho/godotenv/autoload", "github.com/lib/pq"]
+required = ["github.com/joho/godotenv/autoload", "github.com/lib/pq", "github.com/gorilla/mux"]
 
 [[constraint]]
   name = "github.com/joho/godotenv"
@@ -9,3 +9,7 @@ required = ["github.com/joho/godotenv/autoload", "github.com/lib/pq"]
 [[constraint]]
   name = "github.com/lib/pq"
   version = "1.x.x"
+
+[[constraint]]
+  name = "github.com/gorilla/mux"
+  version = "1.7.0"

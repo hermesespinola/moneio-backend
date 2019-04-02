@@ -1,14 +1,17 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"mime/multipart"
 	"net/http"
 	"strconv"
+
+	"github.com/gorilla/mux"
 )
 
-func billHandler(w http.ResponseWriter, r *http.Request) {
+func postBill(w http.ResponseWriter, r *http.Request) {
 	// Parse multipart form data
 	err := r.ParseMultipartForm(0)
 	if err != nil {
@@ -68,10 +71,46 @@ func cors(h http.Handler) http.Handler {
 	})
 }
 
+func getBillEntries(w http.ResponseWriter, r *http.Request) {
+	queryValues := r.URL.Query()
+	vars := mux.Vars(r)
+	serialCode := vars["serialCode"]
+	pageSizeArr := queryValues["pageSize"]
+	pageSize := 10 // Default page size
+	var err error
+	if len(pageSizeArr) > 0 {
+		pageSize, err = strconv.Atoi(pageSizeArr[0])
+		if err != nil {
+			log.Println(err)
+			http.Error(w, err.Error(), 500)
+			return
+		}
+	}
+	pageArr := queryValues["page"]
+	page := 0
+	if len(pageArr) > 0 {
+		page, err = strconv.Atoi(pageArr[0])
+		if err != nil {
+			log.Println(err)
+			http.Error(w, err.Error(), 500)
+			return
+		}
+	}
+	bills := billEntries(serialCode, pageSize, page)
+	fmt.Println(bills)
+	billsJSON, err := json.Marshal(bills)
+	fmt.Printf("%s", billsJSON)
+	if err != nil {
+		log.Fatal("Cannot encode to JSON ", err)
+	}
+	fmt.Fprintf(w, "%s", billsJSON)
+}
+
 func main() {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/upload-bill", billHandler)
-	server := cors(mux)
+	r := mux.NewRouter()
+	r.HandleFunc("/uploadBill", postBill)
+	r.HandleFunc("/billEntries/{serialCode}", getBillEntries)
+	server := cors(r)
 	log.Println("Listening on port 8080")
 	log.Fatal(http.ListenAndServe(":8080", server))
 

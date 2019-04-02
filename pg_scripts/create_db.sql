@@ -4,10 +4,11 @@ CREATE TABLE IF NOT EXISTS bills(
         CHECK(denomination = ANY('{20, 50, 100, 500, 1000}'::int[]))
 );
 
-CREATE TABLE IF NOT EXISTS billEntry(
+-- Maybe add image path
+CREATE TABLE IF NOT EXISTS billEntries(
     id SERIAL UNIQUE,
-    serialCode CHAR(8) NOT NULL
-        REFERENCES bills(serialCode),
+    creationDate DATE NOT NULL DEFAULT CURRENT_DATE,
+    serialCode CHAR(8) NOT NULL REFERENCES bills(serialCode),
     latitude FLOAT NOT NULL,
     longitude FLOAT NOT NULL,
     notes VARCHAR(255)
