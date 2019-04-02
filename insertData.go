@@ -26,6 +26,7 @@ func Connect() (*sql.DB, error) {
 		os.Getenv("PG_PASSWORD"),
 		os.Getenv("PG_DBNAME"),
 	)
+	log.Println(psqlInfo)
 	db, err := sql.Open("postgres", psqlInfo)
 	return db, err
 }

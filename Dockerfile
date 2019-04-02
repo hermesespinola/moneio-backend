@@ -13,9 +13,6 @@ RUN go get -u github.com/golang/dep/cmd/dep
 COPY Gopkg.toml Gopkg.lock  ./
 RUN dep ensure -vendor-only
 
-# Add makefile and env
-COPY .env ./
-
 # Add project code
 COPY *.go ./
 

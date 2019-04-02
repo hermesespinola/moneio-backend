@@ -3,6 +3,8 @@ version: "3"
 services:
   web:
     build: .
+    env_file:
+      - '.env'
     image: moneio_backend:latest
     ports:
       - 8080:8080
