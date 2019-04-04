@@ -71,6 +71,37 @@ func cors(h http.Handler) http.Handler {
 	})
 }
 
+func getAllBillEntries(w http.ResponseWriter, r *http.Request) {
+	queryValues := r.URL.Query()
+	pageSizeArr := queryValues["pageSize"]
+	pageSize := 100 // Default page size
+	var err error
+	if len(pageSizeArr) > 0 {
+		pageSize, err = strconv.Atoi(pageSizeArr[0])
+		if err != nil {
+			log.Println(err)
+			http.Error(w, err.Error(), 500)
+			return
+		}
+	}
+	pageArr := queryValues["page"]
+	page := 0
+	if len(pageArr) > 0 {
+		page, err = strconv.Atoi(pageArr[0])
+		if err != nil {
+			log.Println(err)
+			http.Error(w, err.Error(), 500)
+			return
+		}
+	}
+	bills := allBillEntries(pageSize, page)
+	billsJSON, err := json.Marshal(bills)
+	if err != nil {
+		log.Fatal("Cannot encode to JSON ", err)
+	}
+	fmt.Fprintf(w, "%s", billsJSON)
+}
+
 func getBillEntries(w http.ResponseWriter, r *http.Request) {
 	queryValues := r.URL.Query()
 	vars := mux.Vars(r)
@@ -108,6 +139,7 @@ func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/uploadBill", postBill)
 	r.HandleFunc("/billEntries/{serialCode}", getBillEntries)
+	r.HandleFunc("/billEntries", getAllBillEntries)
 	server := cors(r)
 	log.Println("Listening on port 8080")
 	log.Fatal(http.ListenAndServe(":8080", server))
