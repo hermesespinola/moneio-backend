@@ -56,3 +56,44 @@ func billEntries(serialCode string, pageSize, page int) []Bill {
 	}
 	return bills
 }
+
+func allBillEntries(pageSize, page int) []Bill {
+	db, err := Connect()
+	if err != nil {
+		log.Println(err)
+		return nil
+	}
+	defer db.Close()
+
+	query := `
+		SELECT serialCode, current_date, notes, latitude, longitude
+		FROM billEntries
+		ORDER BY current_date
+		OFFSET $2 LIMIT $3
+	`
+
+	offset := page * pageSize
+	rows, err := db.Query(query, offset, pageSize)
+	if err != nil {
+		log.Println(err)
+		return nil
+	}
+	defer rows.Close()
+	bills := Bills{}
+	for rows.Next() {
+		bill := Bill{}
+		err := rows.Scan(
+			&bill.SerialCode,
+			&bill.CurrentDate,
+			&bill.Notes,
+			&bill.Latitude,
+			&bill.Longitude,
+		)
+		if err != nil {
+			log.Println(err)
+			return nil
+		}
+		bills = append(bills, bill)
+	}
+	return bills
+}
