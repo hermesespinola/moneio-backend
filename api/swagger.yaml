@@ -68,6 +68,15 @@ paths:
       operationId: "getBills"
       produces:
       - "application/json"
+      parameters: 
+      - name: "pageSize"
+        in: "query"
+        description: "Max size of the page (JSON array) to return."
+        type: integer
+      - name: "page"
+        in: "query"
+        description: "Page (JSON array) to return."
+        type: integer
       responses:
         200:
           description: "successful operation"
@@ -94,6 +103,14 @@ paths:
         type: "string"
         minLength: 8
         maxLength: 8
+      - name: "pageSize"
+        in: "query"
+        description: "Max size of the page (JSON array) to return."
+        type: integer
+      - name: "page"
+        in: "query"
+        description: "Page (JSON array) to return."
+        type: integer
       responses:
         200:
           description: "successful operation"
