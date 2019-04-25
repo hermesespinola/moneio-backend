@@ -1,4 +1,4 @@
-package main
+package moneio
 
 import (
 	"encoding/json"
