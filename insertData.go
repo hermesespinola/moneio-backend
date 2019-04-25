@@ -1,4 +1,4 @@
-package moneio
+package main
 
 import (
 	"database/sql"

@@ -1,4 +1,4 @@
-package moneio
+package main
 
 import (
 	"encoding/json"
@@ -53,7 +53,7 @@ func postBill(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	err = uploadBill(serialCode, latitude, longitude, denomination, notes, imFileHeader)
+	err = UploadBill(serialCode, latitude, longitude, denomination, notes, imFileHeader)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, err.Error(), 500)
@@ -94,7 +94,7 @@ func getAllBillEntries(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	bills := allBillEntries(pageSize, page)
+	bills := AllBillEntries(pageSize, page)
 	billsJSON, err := json.Marshal(bills)
 	if err != nil {
 		log.Fatal("Cannot encode to JSON ", err)
@@ -127,7 +127,7 @@ func getBillEntries(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	bills := billEntries(serialCode, pageSize, page)
+	bills := BillEntries(serialCode, pageSize, page)
 	billsJSON, err := json.Marshal(bills)
 	if err != nil {
 		log.Fatal("Cannot encode to JSON ", err)
