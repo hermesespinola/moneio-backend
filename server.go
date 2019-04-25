@@ -6,6 +6,7 @@ import (
 	"log"
 	"mime/multipart"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/gorilla/mux"
@@ -141,6 +142,7 @@ func main() {
 	r.HandleFunc("/billEntries/{serialCode}", getBillEntries)
 	r.HandleFunc("/billEntries", getAllBillEntries)
 	server := cors(r)
-	log.Println("Listening on port 8080")
-	log.Fatal(http.ListenAndServe(":8080", server))
+	port := os.Getenv("PORT")
+	log.Println("Listening on port " + port)
+	log.Fatal(http.ListenAndServe(":"+port, server))
 }

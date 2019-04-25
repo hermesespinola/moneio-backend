@@ -20,11 +20,11 @@ func Connect() (*sql.DB, error) {
 		"password=%s dbname=%s sslmode=disable"
 	psqlInfo := fmt.Sprintf(
 		fmtStr,
-		os.Setenv("PG_HOST", "127.0.0.1"),
-		os.Setenv("PG_PORT", "5432"),
-		os.Setenv("PG_USER", "postgres"),
-		os.Setenv("PG_PASSWORD", "postgres"),
-		os.Setenv("PG_DBNAME", "postgres"),
+		os.Getenv("PG_HOST"),
+		os.Getenv("PG_PORT"),
+		os.Getenv("PG_USER"),
+		os.Getenv("PG_PASSWORD"),
+		os.Getenv("PG_DBNAME"),
 	)
 	db, err := sql.Open("postgres", psqlInfo)
 	return db, err
