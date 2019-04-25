@@ -1,4 +1,4 @@
-package main
+package moneio
 
 import (
 	"database/sql"
@@ -20,11 +20,11 @@ func Connect() (*sql.DB, error) {
 		"password=%s dbname=%s sslmode=disable"
 	psqlInfo := fmt.Sprintf(
 		fmtStr,
-		os.Getenv("PG_HOST"),
-		os.Getenv("PG_PORT"),
-		os.Getenv("PG_USER"),
-		os.Getenv("PG_PASSWORD"),
-		os.Getenv("PG_DBNAME"),
+		os.Setenv("PG_HOST", "127.0.0.1"),
+		os.Setenv("PG_PORT", "5432"),
+		os.Setenv("PG_USER", "postgres"),
+		os.Setenv("PG_PASSWORD", "postgres"),
+		os.Setenv("PG_DBNAME", "postgres"),
 	)
 	db, err := sql.Open("postgres", psqlInfo)
 	return db, err
@@ -58,7 +58,9 @@ func saveBillImage(imFileHeader *multipart.FileHeader, serialCode, id string) er
 	return nil
 }
 
-func uploadBill(serialCode string, latitude, longitude float64, denomination int, notes string, imFileHeader *multipart.FileHeader) error {
+// UploadBill uploads a new bill entry to the database. If there is no previous entry of a bill, it creates a new bill row to keep track
+// of the number of entries, it also creates the new entry for the bill.
+func UploadBill(serialCode string, latitude, longitude float64, denomination int, notes string, imFileHeader *multipart.FileHeader) error {
 	db, err := Connect()
 	if err != nil {
 		log.Println(err)
