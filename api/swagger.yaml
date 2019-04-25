@@ -8,15 +8,15 @@ info:
   license:
     name: "Apache 2.0"
     url: "http://www.apache.org/licenses/LICENSE-2.0.html"
-host: "localhost:8080"
+host: "https://moneio-backend.herokuapp.com"
 tags:
 - name: bill
   description: "Everything bills"
 - name: data
   description: "Data retrieval (for citizen science)"
 schemes:
-- http
 - https
+- http
 paths:
   /uploadBill:
     post:
