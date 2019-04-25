@@ -18,7 +18,7 @@ COPY *.go ./
 
 # Run project
 RUN GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -a -o bin/server *.go
-ENTRYPOINT [ "bin/server" ]
+CMD [ "bin/server" ]
 EXPOSE 8080
 
 LABEL "maintainer"="Hermes Espínola <hermes.espinola@gmail.com>"
