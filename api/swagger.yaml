@@ -1,0 +1,185 @@
+swagger: "2.0"
+info:
+  description: "This is a server that stores information about Mexican bill tracking."
+  version: "1.0.0"
+  title: "Where's Benito API"
+  contact:
+    email: "hermes.espinola@gmail.com"
+  license:
+    name: "Apache 2.0"
+    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+host: "localhost:8080"
+tags:
+- name: bill
+  description: "Everything bills"
+- name: data
+  description: "Data retrieval (for citizen science)"
+schemes:
+- http
+- https
+paths:
+  /uploadBill:
+    post:
+      tags:
+      - bill
+      summary: "Upload a new bill record"
+      description: "If the bill's serial code does not exist, creates a new bill entry in the database. Also creates a new bill entry (i.e.: a new record linked to the bill's serial code)."
+      operationId: uploadBill
+      consumes:
+      - "multipart/form-data"
+      produces:
+      - "text/plain"
+      parameters:
+      - name: serialCode
+        in: formData
+        type: string
+        description: "bill's serial code"
+        maxLength: 8
+        minLength: 8
+      - name: latitude
+        in: formData
+        type: number
+        format: float
+        description: "latitude where you are registering this bill"
+      - name: longitude
+        in: formData
+        type: number
+        format: float
+        description: "longitude where you are registering this bill"
+      - name: denomination
+        in: formData
+        type: integer
+        enum: [20, 50, 100, 200, 500, 1000]
+        description: "bill's denomination"
+      - name: notes
+        in: formData
+        type: string
+        description: "notes regarding bill status"
+        maxLength: 255
+      responses:
+        500:
+          description: "Server error while processing the input (maybe there's a field badly formated)."
+  /billEntries:
+    get:
+      tags:
+      - bill
+      summary: "Get all bill entries in the service."
+      description: "This endpoint fetches all bill entries in the service, including all it's fields."
+      operationId: "getBills"
+      produces:
+      - "application/json"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Bill"
+        500:
+          description: "Server error (probably there was a problem reading the database)."
+  /billEntries/{serialCode}:
+    get:
+      tags:
+      - bill
+      summary: "Finds bill by serial code"
+      description: "Get all bill entries asociated with this serial code, including all it's fields."
+      operationId: "getBillsBySerialCode"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "serialCode"
+        in: "path"
+        description: "Serial code to filter by"
+        required: true
+        type: "string"
+        minLength: 8
+        maxLength: 8
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Bill"
+        500:
+          description: "Server error (probably there was a problem reading the database)."
+  /data/all:
+    get:
+      tags:
+      - data
+      summary: "Retrieve all entries in the database."
+      description: "Retrieves all entries in the database in csv format, where each row represents a bill entry."
+      operationId: "allCSVData"
+      produces:
+      - "application/x-gzip"
+      responses:
+        200:
+          schema:
+            type: file
+          description: "Successful operation, it will retrieve a csv file containing the information."
+          headers:
+            Content-Type:
+              type: string
+              description: "text/csv; charset=utf-8"
+            Content-Disposition:
+              type: string
+              description: "attachment; filename=data.csv"
+  /data/{serialCode}:
+    get:
+      tags:
+      - data
+      summary: "Retrieve all entries in the database."
+      description: "Retrieves all entries from bill with a serial code in the database in csv format, where each row represents a bill entry."
+      operationId: "serialCodeCSVData"
+      parameters:
+      - name: serialCode
+        in: path
+        description: "Serial code to filter by"
+        required: true
+        type: "string"
+        minLength: 8
+        maxLength: 8
+      produces:
+      - "application/x-gzip"
+      responses:
+        200:
+          schema:
+            type: file
+          description: "Successful operation, it will retrieve a csv file containing the information."
+          headers:
+            Content-Type:
+              type: string
+              description: "text/csv; charset=utf-8"
+            Content-Disposition:
+              type: string
+              description: "attachment; filename=data.csv"
+definitions:
+  Bill:
+    type: object
+    required:
+    - serialCode
+    - latitude
+    - longitude
+    - denomination
+    properties:
+      serialCode:
+        type: string
+        maxLength: 8
+        minLength: 8
+        example: "abcdefg2"
+      latitude:
+        type: number
+        format: float
+      longitude:
+        type: number
+        format: float
+      denomination:
+        type: integer
+        enum: [20, 50, 100, 200, 500, 1000]
+      notes:
+        type: string
+        description: "notes regarding bill status"
+        maxLength: 255
+externalDocs:
+  description: "Find out more about Where's benito (formerly Moneio)."
+  url: "http://swagger.io"
