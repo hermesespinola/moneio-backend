@@ -18,13 +18,6 @@ type Bills []Bill
 // AllBillEntries gets all entries registered on the database, limited by page, which is the number of elements
 // that will be obtained in the end.
 func AllBillEntries(pageSize, page int) []Bill {
-	db, err := Connect()
-	if err != nil {
-		log.Println(err)
-		return nil
-	}
-	defer db.Close()
-
 	query := `
 		SELECT serialCode, current_date, notes, latitude, longitude
 		FROM billEntries
@@ -60,13 +53,6 @@ func AllBillEntries(pageSize, page int) []Bill {
 
 // BillEntries obtains a bill's entries through its serial code, amount of entries is limited by page.
 func BillEntries(serialCode string, pageSize, page int) []Bill {
-	db, err := Connect()
-	if err != nil {
-		log.Println(err)
-		return nil
-	}
-	defer db.Close()
-
 	query := `
 		SELECT serialCode, current_date, notes, latitude, longitude
 		FROM billEntries

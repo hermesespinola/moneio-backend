@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"io"
 	"log"
 	"mime/multipart"
@@ -13,22 +12,6 @@ import (
 	_ "github.com/joho/godotenv/autoload"
 	_ "github.com/lib/pq"
 )
-
-// Connect creates a connection to the postgres database
-func Connect() (*sql.DB, error) {
-	fmtStr := "host=%s port=%s user=%s " +
-		"password=%s dbname=%s sslmode=disable"
-	psqlInfo := fmt.Sprintf(
-		fmtStr,
-		os.Getenv("PG_HOST"),
-		os.Getenv("PG_PORT"),
-		os.Getenv("PG_USER"),
-		os.Getenv("PG_PASSWORD"),
-		os.Getenv("PG_DBNAME"),
-	)
-	db, err := sql.Open("postgres", psqlInfo)
-	return db, err
-}
 
 func saveBillImage(imFileHeader *multipart.FileHeader, serialCode, id string) error {
 	// Read image
@@ -61,13 +44,6 @@ func saveBillImage(imFileHeader *multipart.FileHeader, serialCode, id string) er
 // UploadBill uploads a new bill entry to the database. If there is no previous entry of a bill, it creates a new bill row to keep track
 // of the number of entries, it also creates the new entry for the bill.
 func UploadBill(serialCode string, latitude, longitude float64, denomination int, notes string, imFileHeader *multipart.FileHeader) error {
-	db, err := Connect()
-	if err != nil {
-		log.Println(err)
-		return err
-	}
-	defer db.Close()
-
 	// Check for bill
 	sqlStatement := `
 		SELECT COUNT(serialCode), denomination
@@ -78,7 +54,7 @@ func UploadBill(serialCode string, latitude, longitude float64, denomination int
 	row := db.QueryRow(sqlStatement, serialCode)
 	billExists := 0
 	billDenomination := 0
-	err = row.Scan(&billExists, &billDenomination)
+	err := row.Scan(&billExists, &billDenomination)
 	switch err {
 	case nil:
 	case sql.ErrNoRows:

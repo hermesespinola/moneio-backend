@@ -137,6 +137,7 @@ func getBillEntries(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	defer db.Close()
 	r := mux.NewRouter()
 	r.HandleFunc("/uploadBill", postBill)
 	r.HandleFunc("/billEntries/{serialCode}", getBillEntries)
