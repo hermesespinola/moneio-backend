@@ -136,12 +136,23 @@ func getBillEntries(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "%s", billsJSON)
 }
 
+func getCSV(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	if serialCode, ok := vars["serialCode"]; ok {
+		writeCSV(w, serialCode)
+	} else {
+		writeCSV(w, "")
+	}
+}
+
 func main() {
 	defer db.Close()
 	r := mux.NewRouter()
 	r.HandleFunc("/uploadBill", postBill)
 	r.HandleFunc("/billEntries/{serialCode}", getBillEntries)
 	r.HandleFunc("/billEntries", getAllBillEntries)
+	r.HandleFunc("/csv", getCSV)
+	r.HandleFunc("/csv/{serialCode}", getCSV)
 	server := cors(r)
 	port := os.Getenv("PORT")
 	log.Println("Listening on port " + port)
