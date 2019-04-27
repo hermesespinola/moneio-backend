@@ -12,8 +12,8 @@ host: "https://moneio-backend.herokuapp.com"
 tags:
 - name: bill
   description: "Everything bills"
-- name: data
-  description: "Data retrieval (for citizen science)"
+- name: csv
+  description: "CSV data retrieval (for citizen science)"
 schemes:
 - https
 - http
@@ -120,10 +120,10 @@ paths:
               $ref: "#/definitions/Bill"
         500:
           description: "Server error (probably there was a problem reading the database)."
-  /data/all:
+  /csv:
     get:
       tags:
-      - data
+      - csv
       summary: "Retrieve all entries in the database."
       description: "Retrieves all entries in the database in csv format, where each row represents a bill entry."
       operationId: "allCSVData"
@@ -141,10 +141,10 @@ paths:
             Content-Disposition:
               type: string
               description: "attachment; filename=data.csv"
-  /data/{serialCode}:
+  /csv/{serialCode}:
     get:
       tags:
-      - data
+      - csv
       summary: "Retrieve all entries in the database."
       description: "Retrieves all entries from bill with a serial code in the database in csv format, where each row represents a bill entry."
       operationId: "serialCodeCSVData"
